@@ -9,7 +9,7 @@ import (
 	service "serverless/src/services"
 )
 
-func printNewRequest(request *http.Request) {
+func logNewRequest(request *http.Request) {
 	fmt.Printf("\n[ %s ] Path: %s\n", request.RemoteAddr, request.URL.Path)
 	if len(request.URL.RawQuery) > 0 {
 		fmt.Printf("[ %s ] Query: %s\n", request.RemoteAddr, request.URL.RawQuery)
@@ -28,9 +28,57 @@ func printNewRequest(request *http.Request) {
 func buildRoutes() {
 	mux.HandleFunc("/", func(response http.ResponseWriter, request *http.Request) {
 
-		printNewRequest(request)
+		logNewRequest(request)
 
 		switch request.URL.Path {
+		case "/cardflix/create":
+			if isRequestMulpartFormData(request) {
+
+				// Parse our multipart form, 10 << 20 specifies a maximum
+				// upload of 10MB files
+				request.ParseMultipartForm(10 << 20)
+				// FormFile returns the first file for the given key "cover"
+				// it also returns the FileHeader so we can get the Filename,
+				// the Header and the size of the file
+				var file, handler, err = request.FormFile("cover")
+				if err != nil {
+					response.Header().Set("Content-Type", "text/plain; charset=utf-8")
+					response.WriteHeader(http.StatusBadRequest)
+					response.Write([]byte(err.Error()))
+					return
+				}
+				defer file.Close()
+
+				// Info about file
+				fmt.Printf("Uploaded file: %+v\n", handler.Filename)
+				fmt.Printf("File size: %+v\n", handler.Size)
+				fmt.Printf("MIME Header: %+v\n", handler.Header)
+
+				tempFile, err := ioutil.TempFile("src/assets/images", "cover-*.png")
+				if err != nil {
+					response.Header().Set("Content-Type", "text/plain; charset=utf-8")
+					response.WriteHeader(http.StatusInternalServerError)
+					response.Write([]byte(err.Error()))
+					return
+				}
+				defer tempFile.Close()
+
+				fileBytes, err := ioutil.ReadAll(file)
+				if err != nil {
+					response.Header().Set("Content-Type", "text/plain; charset=utf-8")
+					response.WriteHeader(http.StatusBadRequest)
+					response.Write([]byte(err.Error()))
+					return
+				}
+
+				// Create cover image in the server
+				tempFile.Write(fileBytes)
+
+				response.Header().Set("Content-Type", "text/plain; charset=utf-8")
+				response.WriteHeader(http.StatusOK)
+				return
+			}
+
 		case "/cardflix/form":
 			if request.Method == http.MethodGet {
 				var content, err = ioutil.ReadFile("src/public/index.html")
