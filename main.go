@@ -1,6 +1,6 @@
 package main
 
-import "serverless/src/server"
+import "powerflix-api/src/server"
 
 func main() {
 	server.Start(7080)

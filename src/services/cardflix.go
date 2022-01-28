@@ -3,8 +3,8 @@ package service
 import (
 	"encoding/json"
 	"log"
-	database "serverless/src/database/mongo"
-	model "serverless/src/models"
+	database "powerflix-api/src/database/mongo"
+	model "powerflix-api/src/models"
 )
 
 func AddCardflix(cardflix model.Cardflix) (string, error) {

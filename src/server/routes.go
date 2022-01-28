@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	model "serverless/src/models"
-	service "serverless/src/services"
+	model "powerflix-api/src/models"
+	service "powerflix-api/src/services"
 )
 
 func logNewRequest(request *http.Request) {

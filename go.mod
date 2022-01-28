@@ -1,4 +1,4 @@
-module serverless
+module powerflix-api
 
 go 1.16
 
